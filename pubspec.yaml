@@ -1,0 +1,23 @@
+name: clipboard_networking
+description: Core networking, discovery, protocol, and pairing plugin for Clipboard Sharer.
+version: 1.0.0
+publish_to: 'none'
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  crypto: ^3.0.3
+  uuid: ^4.3.3
+  web_socket_channel: ^2.4.1
+  nsd: ^5.0.1
+  meta: ^1.11.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  test: ^1.24.9

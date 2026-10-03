@@ -1,0 +1,9 @@
+# Dart package .gitignore
+.dart_tool/
+.packages
+.pub/
+.pub-cache/
+build/
+doc/api/
+*.log
+.DS_Store
