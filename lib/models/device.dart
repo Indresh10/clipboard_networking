@@ -29,6 +29,9 @@ class Device {
     this.metadata = const {},
   });
 
+  /// Convenience alias for [address].
+  String get ip => address;
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
