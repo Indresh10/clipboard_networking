@@ -10,7 +10,9 @@ import 'models/device_type.dart';
 import 'models/pairing_payload.dart';
 import 'pairing/pairing_client_service.dart';
 import 'pairing/pairing_manager.dart';
+import 'protocol/message_type.dart';
 import 'protocol/network_message.dart';
+import 'protocol/payloads.dart';
 import 'transport/lan_connection.dart';
 import 'transport/websocket_client.dart';
 
@@ -19,19 +21,21 @@ import 'transport/websocket_client.dart';
 /// and clipboard transmission with delivery acknowledgments.
 class ClipboardSharerClient {
   final String deviceId;
-  final String deviceName;
+  String deviceName;
   final DeviceType deviceType;
 
   final DeviceDiscovery discovery;
   final LanConnection connection;
-  late final PairingClientService _pairingService;
+  late PairingClientService _pairingService;
 
   final Map<String, Device> _discoveredDevices = {};
   final _discoveredDevicesController =
       StreamController<List<Device>>.broadcast();
+  final _deviceInfoController = StreamController<DeviceInfoPayload>.broadcast();
 
   StreamSubscription? _discoverySub;
   StreamSubscription? _connectionStateSub;
+  StreamSubscription? _messageSub;
 
   ClipboardSharerClient({
     required this.deviceId,
@@ -48,7 +52,28 @@ class ClipboardSharerClient {
     );
 
     _discoverySub = this.discovery.discover().listen(_onDeviceDiscovered);
+    _messageSub = this.connection.messages.listen((msg) {
+      if (msg.type == MessageType.deviceInfo) {
+        final info = msg.asDeviceInfoPayload();
+        if (!_deviceInfoController.isClosed) {
+          _deviceInfoController.add(info);
+        }
+      }
+    });
   }
+
+  /// Updates the local device name used in pairings and handshakes.
+  void updateDeviceName(String newName) {
+    deviceName = newName;
+    _pairingService = PairingClientService(
+      localDeviceId: deviceId,
+      localDeviceName: deviceName,
+      localDeviceType: deviceType,
+    );
+  }
+
+  /// Stream of device info payloads received from the TV.
+  Stream<DeviceInfoPayload> get deviceInfoStream => _deviceInfoController.stream;
 
   /// Stream of currently discovered TV devices on the LAN.
   Stream<List<Device>> get discoveredDevicesStream =>
@@ -178,8 +203,10 @@ class ClipboardSharerClient {
   void dispose() {
     _discoverySub?.cancel();
     _connectionStateSub?.cancel();
+    _messageSub?.cancel();
     discovery.stop();
     connection.dispose();
     _discoveredDevicesController.close();
+    _deviceInfoController.close();
   }
 }

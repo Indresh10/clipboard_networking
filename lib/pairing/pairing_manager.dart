@@ -192,6 +192,18 @@ class PairingManager {
     return device.authToken == authToken;
   }
 
+  /// Updates the stored name for a paired device if it has changed.
+  void updatePairedDeviceName(String deviceId, String newName) {
+    final existing = _pairedDevices[deviceId];
+    if (existing != null && existing.name != newName) {
+      _pairedDevices[deviceId] = existing.copyWith(
+        name: newName,
+        lastSeen: DateTime.now().toUtc(),
+      );
+      onPairedDevicesChanged?.call(pairedDevices);
+    }
+  }
+
   /// Removes a previously paired device.
   bool removePairedDevice(String deviceId) {
     final removed = _pairedDevices.remove(deviceId) != null;

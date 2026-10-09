@@ -170,6 +170,7 @@ class ClipboardSharerReceiver {
     // Check if client is already paired with valid auth token
     if (hello.authToken != null &&
         _pairingManager.verifyClientAuth(message.senderId, hello.authToken)) {
+      _pairingManager.updatePairedDeviceName(message.senderId, hello.clientName);
       _server.markClientAuthenticated(
         client.connectionId,
         deviceId: message.senderId,
